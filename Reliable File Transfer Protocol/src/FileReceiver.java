@@ -8,7 +8,7 @@ public class FileReceiver {
 	public static void main(String[] args) throws Exception 
 	{
 		if (args.length != 1) {
-			System.err.println("Usage: SimpleUDPReceiver <port>");
+			System.err.println("Usage: FileReceiver <port>");
 			System.exit(-1);
 		}
 		int port = Integer.parseInt(args[0]);
