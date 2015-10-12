@@ -3,7 +3,7 @@ import java.util.*;
 import java.nio.*;
 import java.util.zip.*;
 
-public class SimpleUDPReceiver {
+public class FileReceiver {
 
 	public static void main(String[] args) throws Exception 
 	{
