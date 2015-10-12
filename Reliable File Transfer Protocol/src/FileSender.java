@@ -8,7 +8,7 @@ public class FileSender {
 	public static void main(String[] args) throws Exception 
 	{
 		if (args.length != 3) {
-			System.err.println("Usage: SimpleUDPSender <host> <port> <num_pkts>");
+			System.err.println("Usage: FileSender <host> <port> <num_pkts>");
 			System.exit(-1);
 		}
 
