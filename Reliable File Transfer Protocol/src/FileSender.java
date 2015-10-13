@@ -23,13 +23,13 @@ public class FileSender {
 		FileInputStream fis = new FileInputStream(filename);
 		//stream file into stream
 		DataInputStream dis = new DataInputStream(fis);
-		byte[] byteArray = new byte[1000];
+		int len = 1000+63+31;
+		byte[] byteArray = new byte[len];
 		ByteBuffer buffData = ByteBuffer.wrap(byteArray);
-		
 		// read 1000 bytes from file
 		//if the file has ended then stop
 		int offset = 63 + 31;
-		int len = 1000+63+31;
+		
 		int sn = 0;
 		while(dis.read(byteArray, offset, len) != -1)
 		{
