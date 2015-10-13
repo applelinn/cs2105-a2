@@ -43,7 +43,7 @@ public class FileSender {
 			buffData.putInt(sn);
 			//packet time
 			pkt = new DatagramPacket(byteArray, byteArray.length, addr);
-			//System.out.println("Sent CRC:" + chksum + " Contents:" + bytesToHex(data));
+			System.out.println("Sent CRC:" + chksum + " Contents:" + bytesToHex(byteArray));
 			//send off via socket
 			sk.send(pkt);
 			
