@@ -1,3 +1,4 @@
+import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.nio.*;
@@ -13,31 +14,42 @@ public class FileSender {
 		}
 
 		InetSocketAddress addr = new InetSocketAddress(args[0], Integer.parseInt(args[1]));
-		int num = Integer.parseInt(args[2]);
 		DatagramSocket sk = new DatagramSocket();
 		DatagramPacket pkt;
-		byte[] data = new byte[20];
-		ByteBuffer b = ByteBuffer.wrap(data);
-
 		CRC32 crc = new CRC32();
-
-		for (int i = 1; i <= num; i++)
+		
+		String filename = args[2];
+		//open file
+		FileInputStream fis = new FileInputStream(filename);
+		//stream file into stream
+		DataInputStream dis = new DataInputStream(fis);
+		byte[] byteArray = new byte[1000];
+		ByteBuffer buffData = ByteBuffer.wrap(byteArray);
+		
+		// read 1000 bytes from file
+		//if the file has ended then stop
+		int offset = 63 + 31;
+		int len = 1000-63-31;
+		int sn = 0;
+		while(dis.read(byteArray, offset, len) != -1)
 		{
-			b.clear();
-			// reserve space for checksum
-			b.putLong(0);
-			b.putInt(i);
+			//but em in packets
+			//put crc first
 			crc.reset();
-			crc.update(data, 8, data.length-8);
+			crc.update(byteArray, 8, byteArray.length-8);
 			long chksum = crc.getValue();
-			b.rewind();
-			b.putLong(chksum);
-
-			pkt = new DatagramPacket(data, data.length, addr);
-			// Debug output
+			buffData.putLong(chksum);
+			//put in sequence num
+			buffData.putInt(sn);
+			//packet time
+			pkt = new DatagramPacket(byteArray, byteArray.length, addr);
 			//System.out.println("Sent CRC:" + chksum + " Contents:" + bytesToHex(data));
+			//send off via socket
 			sk.send(pkt);
+			
+			buffData.clear();
 		}
+		
 	}
 
 	final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
