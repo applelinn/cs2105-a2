@@ -20,6 +20,7 @@ public class FileReceiver {
 		ByteBuffer b = ByteBuffer.wrap(data);
 		CRC32 crc = new CRC32();
 		boolean isPkt0 = true;
+		
 		while(true)
 		{
 			pkt.setLength(data.length);
@@ -42,6 +43,10 @@ public class FileReceiver {
 			}
 			else
 			{
+				String newFileName = null;  
+				FileOutputStream fos = null;
+				DataOutputStream dos = null;
+				
 				if(isPkt0)
 				{
 					byte[] nameBytes = new byte[255*2];
@@ -51,21 +56,20 @@ public class FileReceiver {
 						continue;
 					}
 					b.get(nameBytes, 0, 255*2);
-					String newFileName = new String (nameBytes);  
-					FileOutputStream fos = new FileOutputStream(newFileName);
-					DataOutputStream dos = new DataOutputStream (fos);
+					newFileName = new String (nameBytes);  
+					fos = new FileOutputStream(newFileName);
+					dos = new DataOutputStream (fos);
 					isPkt0 = false;
 					continue;
 				}
-		//		System.out.println("Pkt " + b.getInt());
 				
+				System.out.println("Pkt " + b.getInt());
+				int tempDataLen = 1000-12;
+				byte[] tempData = new byte[tempDataLen];
+				b.get(tempData);
 				//save it to a file
-				dos.write()
-				byte[] tempByteArr = new byte[255*2]; 
-				b.get(tempByteArr, 0, 255*2); //store in a byte array full max size
-				//get the len of name
-				//put name into string
-				
+				dos.write(tempData,0,tempDataLen);
+
 				//update ack
 				DatagramPacket ack = new DatagramPacket(new byte[0], 0, 0,
 						pkt.getSocketAddress());
