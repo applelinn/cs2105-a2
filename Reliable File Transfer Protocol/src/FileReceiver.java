@@ -20,7 +20,7 @@ public class FileReceiver {
 		ByteBuffer b = ByteBuffer.wrap(data);
 		CRC32 crc = new CRC32();
 		boolean isPkt0 = true;
-		
+		System.out.println("hey");
 		while(true)
 		{
 			pkt.setLength(data.length);
@@ -35,7 +35,7 @@ public class FileReceiver {
 			crc.reset();
 			crc.update(data, 8, pkt.getLength()-8);
 			// Debug output
-			System.out.println("Received CRC:" + crc.getValue() + " Data:" + bytesToHex(data, pkt.getLength()));
+		//	System.out.println("Received CRC:" + crc.getValue() + " Data:" + bytesToHex(data, pkt.getLength()));
 			if (crc.getValue() != chksum)
 			{
 				System.out.println("Pkt corrupt");
@@ -49,17 +49,19 @@ public class FileReceiver {
 				
 				if(isPkt0)
 				{
+					
 					byte[] nameBytes = new byte[255*2];
 					if (b.getInt() != 0)
 					{
 						System.out.println("error in detecting pkt 0");
 						continue;
 					}
-					b.get(nameBytes, 0, 255*2);
 					int nameLen = 0;
-					b.getInt(nameLen);
-					newFileName = new String (nameBytes, 0, nameLen*2);  
-					File f = new File(newFileName);
+					nameLen=b.getInt();
+					b.get(nameBytes, 0, 255*2);
+					newFileName = new String (nameBytes, 0, nameLen*2); 
+					System.out.println(newFileName);
+					File f = new File("apple");
 					f.createNewFile();
 					fos = new FileOutputStream(f);
 					dos = new DataOutputStream (fos);
