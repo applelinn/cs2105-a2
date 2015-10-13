@@ -56,7 +56,9 @@ public class FileReceiver {
 						continue;
 					}
 					b.get(nameBytes, 0, 255*2);
-					newFileName = new String (nameBytes);  
+					int nameLen = 0;
+					b.getInt(nameLen);
+					newFileName = new String (nameBytes, 0, nameLen*2);  
 					File f = new File(newFileName);
 					f.createNewFile();
 					fos = new FileOutputStream(f);
