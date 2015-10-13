@@ -2,6 +2,8 @@ import java.net.*;
 import java.util.*;
 import java.nio.*;
 import java.util.zip.*;
+import java.io.*;
+
 
 public class FileReceiver {
 
@@ -17,6 +19,7 @@ public class FileReceiver {
 		DatagramPacket pkt = new DatagramPacket(data, data.length);
 		ByteBuffer b = ByteBuffer.wrap(data);
 		CRC32 crc = new CRC32();
+		boolean isPkt0 = true;
 		while(true)
 		{
 			pkt.setLength(data.length);
@@ -39,7 +42,29 @@ public class FileReceiver {
 			}
 			else
 			{
-				System.out.println("Pkt " + b.getInt());
+				if(isPkt0)
+				{
+					byte[] nameBytes = new byte[255*2];
+					if (b.getInt() != 0)
+					{
+						System.out.println("error in detecting pkt 0");
+						continue;
+					}
+					b.get(nameBytes, 0, 255*2);
+					String newFileName = new String (nameBytes);  
+					FileOutputStream fos = new FileOutputStream(newFileName);
+					DataOutputStream dos = new DataOutputStream (fos);
+					isPkt0 = false;
+					continue;
+				}
+		//		System.out.println("Pkt " + b.getInt());
+				
+				//save it to a file
+				dos.write()
+				byte[] tempByteArr = new byte[255*2]; 
+				b.get(tempByteArr, 0, 255*2); //store in a byte array full max size
+				//get the len of name
+				//put name into string
 				
 				//update ack
 				DatagramPacket ack = new DatagramPacket(new byte[0], 0, 0,
