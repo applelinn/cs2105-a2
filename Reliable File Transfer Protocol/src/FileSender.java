@@ -6,6 +6,19 @@ import java.util.zip.*;
 
 public class FileSender {
 
+		public DatagramPacket run(DatagramSocket sk)
+		{
+			byte[] data = new byte[4]; 
+			DatagramPacket ackpkt= new DatagramPacket(data, data.length);;
+			try {
+				sk.receive(ackpkt);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return ackpkt;
+		}
+		
 	public static void main(String[] args) throws Exception 
 	{
 		if (args.length != 4) {
