@@ -4,20 +4,7 @@ import java.util.*;
 import java.nio.*;
 import java.util.zip.*;
 
-public class FileSender {
-
-		public DatagramPacket run(DatagramSocket sk)
-		{
-			byte[] data = new byte[4]; 
-			DatagramPacket ackpkt= new DatagramPacket(data, data.length);;
-			try {
-				sk.receive(ackpkt);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			return ackpkt;
-		}
+public class FileSender{
 		
 	public static void main(String[] args) throws Exception 
 	{
@@ -74,7 +61,10 @@ public class FileSender {
 			ByteBuffer b = ByteBuffer.wrap(data);
 			ackpkt.setLength(data.length);
 			b.clear();
-			sk.receive(ackpkt);
+			Timer timer = new Timer();
+			TimerPktRcv pktReceive = new TimerPktRcv (sk); 
+			timer.schedule(pktReceive, 0, 200);
+	//		sk.receive(ackpkt);
 			System.out.println("ack " + sn + "received");
 			if (b.getInt() != sn)
 			{
