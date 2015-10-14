@@ -60,6 +60,7 @@ public class FileSender {
 			ackpkt = new DatagramPacket(data, data.length);
 			ByteBuffer b = ByteBuffer.wrap(data);
 			ackpkt.setLength(data.length);
+			b.clear();
 			sk.receive(ackpkt);
 			System.out.println("ack " + sn + "received");
 			if (b.getInt() != sn)
@@ -100,6 +101,7 @@ public class FileSender {
 				byte[] data = new byte[4];
 				ackpkt = new DatagramPacket(data, data.length);
 				ByteBuffer b = ByteBuffer.wrap(data);
+				b.clear();
 				sk.receive(ackpkt);
 				System.out.println("ack " + sn + "received");
 				if (b.getInt() != sn)
