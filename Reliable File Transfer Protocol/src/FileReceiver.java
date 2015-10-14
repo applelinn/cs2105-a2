@@ -87,16 +87,7 @@ public class FileReceiver {
 			if (isPktUncorrupt(pkt, b) )
 			{
 				sn = b.getInt();
-				if (sn == snCorrect -1)
-				{
-					byte[] ackByte = new byte[4];
-					ByteBuffer ackB = ByteBuffer.wrap(ackByte);
-					ackB.putInt(sn);
-					DatagramPacket ack = new DatagramPacket(ackByte, 0, 4,
-							pkt.getSocketAddress());
-					sk.send(ack);
-					continue;
-				}else if(sn != snCorrect)
+				if(sn != snCorrect)
 				{
 					sk.send(ack0);
 					System.out.println("sn correct: " + snCorrect);
