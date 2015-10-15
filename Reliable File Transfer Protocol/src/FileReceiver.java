@@ -33,11 +33,7 @@ public class FileReceiver {
 		while (!isPktUncorrupt(pkt, b))
 		{
 			//send wrong ack ack1
-			byte[] ackByte0 = new byte[4];
-			ByteBuffer ackB0 = ByteBuffer.wrap(ackByte0);
-			ackB0.putInt(1);
-			DatagramPacket ack0 = new DatagramPacket(ackByte0, 0, 4,
-					pkt.getSocketAddress());
+			DatagramPacket ack0 = Ack(1, pkt.getSocketAddress());
 			sk.send(ack0);
 			b.clear();
 			sk.receive(pkt);
@@ -47,11 +43,7 @@ public class FileReceiver {
 		}
 
 		//send ack0
-		byte[] ackByte0 = new byte[4];
-		ByteBuffer ackB0 = ByteBuffer.wrap(ackByte0);
-		ackB0.putInt(sn);
-		DatagramPacket ack0 = new DatagramPacket(ackByte0, 0, 4,
-				pkt.getSocketAddress());
+		DatagramPacket ack0 = Ack(sn, pkt.getSocketAddress());
 		sk.send(ack0);
 		//create file and shit
 		if (sn != snCorrect)
@@ -86,44 +78,32 @@ public class FileReceiver {
 			// Debug output
 			//	System.out.println("Received CRC:" + crc.getValue() + " Data:" + bytesToHex(data, pkt.getLength()));
 
-			if (isPktUncorrupt(pkt, b) )
+			if (isPktUncorrupt(pkt, b))
 			{
 				sn = b.getInt();
 				if(sn != snCorrect)
 				{
-					byte[] ackByte = new byte[4];
-					ByteBuffer ackB = ByteBuffer.wrap(ackByte);
-					ackB.putInt(snCorrect-1);
-					DatagramPacket ack = new DatagramPacket(ackByte, 0, 4,
-							pkt.getSocketAddress());
+					DatagramPacket ack = Ack(snCorrect-1, pkt.getSocketAddress());
 					sk.send(ack);
 					System.out.println("sent prev ack because wrong sn");
 					continue;
 				}
 				System.out.println("sn correct: " + snCorrect);
 				System.out.println("Pkt " + sn);
-				int tempDataLen = 1000-12;
+				int tempDataLen = pkt.getLength()-12;
 				byte[] tempData = new byte[tempDataLen];
 				b.get(tempData);
 				//save it to a file
 				dos.write(tempData,0,tempDataLen);
 
 				//update ack
-				byte[] ackByte = new byte[4];
-				ByteBuffer ackB = ByteBuffer.wrap(ackByte);
-				ackB.putInt(sn);
-				DatagramPacket ack = new DatagramPacket(ackByte, 0, 4,
-						pkt.getSocketAddress());
+				DatagramPacket ack = Ack(sn, pkt.getSocketAddress());
 				sk.send(ack);
 				++snCorrect;
 			}
 			else
 			{
-				byte[] ackByte = new byte[4];
-				ByteBuffer ackB = ByteBuffer.wrap(ackByte);
-				ackB.putInt(snCorrect-1);
-				DatagramPacket ack = new DatagramPacket(ackByte, 0, 4,
-						pkt.getSocketAddress());
+				DatagramPacket ack = Ack(snCorrect-1, pkt.getSocketAddress());
 				sk.send(ack);
 				System.out.println("sent prev ack");
 			}
@@ -166,5 +146,22 @@ public class FileReceiver {
 			isOk = false;
 		}
 		return isOk;
+	}
+	
+	private static DatagramPacket Ack(int sn, SocketAddress add)
+	{
+		byte[] ackByte = new byte [12];
+		ByteBuffer b = ByteBuffer.wrap(ackByte);
+		CRC32 crc = new CRC32();
+		b.putLong(0);
+		b.putInt(sn);
+		
+		DatagramPacket ackPkt = new DatagramPacket(ackByte, 0, 12,
+						add);
+		crc.reset();
+		crc.update(ackPkt.getData(), 8, ackPkt.getLength()-8);
+		b.rewind();
+		b.putLong(crc.getValue());
+		return ackPkt;
 	}
 }

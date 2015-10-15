@@ -156,8 +156,6 @@ public class FileSender{
 						else
 							isWrong = false;
 					}
-					
-					
 				}
 				++sn;
 				buffData.clear();
