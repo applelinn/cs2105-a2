@@ -33,7 +33,7 @@ public class FileReceiver {
 		while (!isPktUncorrupt(pkt, b))
 		{
 			//send wrong ack ack1
-			DatagramPacket ack0 = Ack(1, pkt.getSocketAddress());
+			DatagramPacket ack0 = Ack(-1, pkt.getSocketAddress());
 			sk.send(ack0);
 			b.clear();
 			sk.receive(pkt);
@@ -42,15 +42,16 @@ public class FileReceiver {
 			sn = b.getInt();
 		}
 
-		//send ack0
-		DatagramPacket ack0 = Ack(sn, pkt.getSocketAddress());
-		sk.send(ack0);
-		//create file and shit
 		if (sn != snCorrect)
 		{
 			System.out.println("error in detecting pkt 0");
 		}
+		//send ack0
+		DatagramPacket ack0 = Ack(sn, pkt.getSocketAddress());
+		sk.send(ack0);
 		++snCorrect;
+		
+		//create file and shit
 		System.out.println("sn correct: " + snCorrect);
 		b.rewind();
 		b.getLong();

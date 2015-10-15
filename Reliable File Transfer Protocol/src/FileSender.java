@@ -53,14 +53,15 @@ public class FileSender{
 			long chksum0 = crc.getValue();
 			buffData.rewind();
 			buffData.putLong(chksum0);//put in the crc
-			//packet time
+			//packet time pkt0
 			pkt = new DatagramPacket(byteArray, byteArray.length, addr);
 			// System.out.println("Sent CRC:" + chksum + " Contents:" + bytesToHex(byteArray));
 			sk.send(pkt); //send off via socket
 			boolean isWrong = true;
+			//check for correct ack
 			while (isWrong)
 			{
-				byte[] data = new byte[4];
+				byte[] data = new byte[12];
 				ackpkt = new DatagramPacket(data, data.length);
 				ByteBuffer b = ByteBuffer.wrap(data);
 				ackpkt.setLength(data.length);
@@ -80,6 +81,19 @@ public class FileSender{
 					continue;
 				}
 				System.out.println("ack " + sn + "received");
+				
+				//crc check
+				long checksum = b.getLong();
+				crc.reset();
+				crc.update(data, 8, data.length-8);
+				if(checksum != crc.getValue())
+				{
+					//ack pkt corrupt
+					System.out.println("ack corrupt");
+					sk.send(pkt);
+					System.out.println("pkt " + sn + "sent");
+				}
+				b.rewind();
 				if (b.getInt() != sn)
 				{
 					System.out.println("Pkt wrong sn");
@@ -96,6 +110,7 @@ public class FileSender{
 			//put data in packets
 			while( actSize != -1)
 			{
+				System.out.println("act size " + actSize);
 				//put in sequence num
 				buffData.putInt(8, sn);
 				//put crc
