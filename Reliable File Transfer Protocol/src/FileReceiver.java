@@ -8,8 +8,10 @@ import java.io.*;
 
 public class FileReceiver {
 
-	public static void main(String[] args) throws Exception 
+	public static void main(String[] args)
 	{
+		try
+		{
 		if (args.length != 1) {
 			System.err.println("Usage: FileReceiver <port>");
 			System.exit(-1);
@@ -19,7 +21,7 @@ public class FileReceiver {
 		byte[] data = new byte[1500];
 		DatagramPacket pkt = new DatagramPacket(data, data.length);
 		ByteBuffer b = ByteBuffer.wrap(data);
-		
+
 		//ok lets deal with pkt0 here
 		pkt.setLength(data.length);
 		b.clear();
@@ -43,14 +45,14 @@ public class FileReceiver {
 			b.getLong();
 			sn = b.getInt();
 		}
-		
+
 		//send ack0
-				byte[] ackByte0 = new byte[4];
-				ByteBuffer ackB0 = ByteBuffer.wrap(ackByte0);
-				ackB0.putInt(sn);
-				DatagramPacket ack0 = new DatagramPacket(ackByte0, 0, 4,
-						pkt.getSocketAddress());
-				sk.send(ack0);
+		byte[] ackByte0 = new byte[4];
+		ByteBuffer ackB0 = ByteBuffer.wrap(ackByte0);
+		ackB0.putInt(sn);
+		DatagramPacket ack0 = new DatagramPacket(ackByte0, 0, 4,
+				pkt.getSocketAddress());
+		sk.send(ack0);
 		//create file and shit
 		if (sn != snCorrect)
 		{
@@ -74,7 +76,7 @@ public class FileReceiver {
 		FileOutputStream fos = new FileOutputStream(f);
 		DataOutputStream dos = new DataOutputStream (fos);	
 		f.createNewFile();
-		
+
 		while(true)
 		{
 			pkt.setLength(data.length);
@@ -82,16 +84,20 @@ public class FileReceiver {
 			sk.receive(pkt);
 			System.out.println("received new packet");
 			// Debug output
-		//	System.out.println("Received CRC:" + crc.getValue() + " Data:" + bytesToHex(data, pkt.getLength()));
-			
+			//	System.out.println("Received CRC:" + crc.getValue() + " Data:" + bytesToHex(data, pkt.getLength()));
+
 			if (isPktUncorrupt(pkt, b) )
 			{
 				sn = b.getInt();
 				if(sn != snCorrect)
 				{
-					sk.send(ack0);
-					System.out.println("sn correct: " + snCorrect);
-					System.out.println("sent ack0 because wrong sn");
+					byte[] ackByte = new byte[4];
+					ByteBuffer ackB = ByteBuffer.wrap(ackByte);
+					ackB.putInt(snCorrect-1);
+					DatagramPacket ack = new DatagramPacket(ackByte, 0, 4,
+							pkt.getSocketAddress());
+					sk.send(ack);
+					System.out.println("sent prev ack because wrong sn");
 					continue;
 				}
 				System.out.println("sn correct: " + snCorrect);
@@ -123,17 +129,22 @@ public class FileReceiver {
 			}
 
 		}
+		}
+		catch (Exception e)
+		{
+			System.out.println("Exception encountered: "  + e);
+		}
 	}
 
 	final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
 	public static String bytesToHex(byte[] bytes, int len) {
-	    char[] hexChars = new char[len * 2];
-	    for ( int j = 0; j < len; j++ ) {
-	        int v = bytes[j] & 0xFF;
-	        hexChars[j * 2] = hexArray[v >>> 4];
-	        hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-	    }
-	    return new String(hexChars);
+		char[] hexChars = new char[len * 2];
+		for ( int j = 0; j < len; j++ ) {
+			int v = bytes[j] & 0xFF;
+			hexChars[j * 2] = hexArray[v >>> 4];
+			hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+		}
+		return new String(hexChars);
 	}
 	public static boolean isPktUncorrupt (DatagramPacket pkt, ByteBuffer b) {
 		boolean isOk = true;
@@ -148,7 +159,7 @@ public class FileReceiver {
 		crc.reset();
 		crc.update(pkt.getData(), 8, pkt.getLength()-8);
 		// Debug output
-	//	System.out.println("Received CRC:" + crc.getValue() + " Data:" + bytesToHex(data, pkt.getLength()));
+		//	System.out.println("Received CRC:" + crc.getValue() + " Data:" + bytesToHex(data, pkt.getLength()));
 		if (crc.getValue() != chksum)
 		{
 			System.out.println("Pkt corrupt");
