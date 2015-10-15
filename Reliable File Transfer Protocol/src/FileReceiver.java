@@ -91,6 +91,7 @@ public class FileReceiver {
 				System.out.println("sn correct: " + snCorrect);
 				System.out.println("Pkt " + sn);
 				int tempDataLen = pkt.getLength()-12;
+				System.out.println("pkt len " + tempDataLen);
 				byte[] tempData = new byte[tempDataLen];
 				b.get(tempData);
 				//save it to a file

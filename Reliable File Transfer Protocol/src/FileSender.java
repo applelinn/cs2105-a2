@@ -91,13 +91,13 @@ public class FileSender{
 			}
 			++sn;
 			buffData.clear();
+			int actSize = dis.read(byteArray, offset, len);
 
 			//put data in packets
-			while(dis.read(byteArray, offset, len) != -1)
+			while( actSize != -1)
 			{
 				//put in sequence num
 				buffData.putInt(8, sn);
-
 				//put crc
 				crc.reset();
 				crc.update(byteArray, 8, byteArray.length-8);
@@ -105,7 +105,7 @@ public class FileSender{
 				buffData.rewind();
 				buffData.putLong(chksum);
 				//packet time~
-				pkt = new DatagramPacket(byteArray, byteArray.length, addr);
+				pkt = new DatagramPacket(byteArray, actSize + 12 , addr);
 				//	System.out.println("Sent CRC:" + chksum + " Contents:" + bytesToHex(byteArray));
 				//send off via socket
 				sk.send(pkt);
@@ -156,9 +156,11 @@ public class FileSender{
 						else
 							isWrong = false;
 					}
+					
 				}
 				++sn;
 				buffData.clear();
+				actSize = dis.read(byteArray, offset, len);
 			}
 			dis.close();
 			sk.close();
