@@ -115,7 +115,7 @@ public class FileSender{
 				isWrong = true;
 				while (isWrong)
 				{
-					byte[] data = new byte[4];
+					byte[] data = new byte[12];
 					ackpkt = new DatagramPacket(data, data.length);
 					ByteBuffer b = ByteBuffer.wrap(data);
 					b.clear();
@@ -132,6 +132,7 @@ public class FileSender{
 					}
 		//			sk.receive(ackpkt);
 					System.out.println("ack " + sn + "received");
+					b.getLong();
 					int pktsn = b.getInt();
 					if (pktsn != sn)
 					{
@@ -139,8 +140,24 @@ public class FileSender{
 						sk.send(pkt);
 						System.out.println("pkt " + sn + "sent");
 					}
-					else
-						isWrong = false;
+					else 
+					{
+						crc.reset();
+						crc.update(ackpkt.getData(), 8, ackpkt.getLength()-8);
+						b.rewind();
+						long checkSum = crc.getValue();
+						if (checkSum != b.getLong())
+						{
+							//check for corruption
+							System.out.println("Pkt corrupt:" + pktsn);
+							sk.send(pkt);
+							System.out.println("pkt " + sn + "sent");
+						}
+						else
+							isWrong = false;
+					}
+					
+					
 				}
 				++sn;
 				buffData.clear();
