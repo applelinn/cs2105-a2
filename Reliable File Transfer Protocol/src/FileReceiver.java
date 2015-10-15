@@ -18,12 +18,12 @@ public class FileReceiver {
 		}
 		int port = Integer.parseInt(args[0]);
 		DatagramSocket sk = new DatagramSocket(port);
-		byte[] data = new byte[1500];
+		byte[] data = new byte[1000];
 		DatagramPacket pkt = new DatagramPacket(data, data.length);
 		ByteBuffer b = ByteBuffer.wrap(data);
 
 		//ok lets deal with pkt0 here
-		pkt.setLength(data.length);
+	//	pkt.setLength(data.length);
 		b.clear();
 		sk.receive(pkt);
 		b.rewind();
@@ -46,15 +46,12 @@ public class FileReceiver {
 		b.getLong();
 		sn = b.getInt();
 		int nameLen = b.getInt();
-		
 		//send ack0
 		DatagramPacket ack0 = Ack(sn, pkt.getSocketAddress());
 		sk.send(ack0);
 		++snCorrect;
-		
+
 		//create file and shit
-		System.out.println("sn correct: " + snCorrect);
-		
 		System.out.println(nameLen);
 		byte[] nameBytes = new byte[nameLen*2];
 		b.get(nameBytes, 0, nameLen*2);

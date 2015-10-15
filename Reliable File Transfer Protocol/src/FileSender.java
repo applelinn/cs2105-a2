@@ -49,7 +49,7 @@ public class FileSender{
 			}
 			//crc time~
 			crc.reset();
-			crc.update(byteArray, 8, byteArray.length-8);
+			crc.update(byteArray, 8, byteArray.length - 8);
 			long chksum0 = crc.getValue();
 			buffData.rewind();
 			buffData.putLong(chksum0);//put in the crc
@@ -113,9 +113,10 @@ public class FileSender{
 				System.out.println("act size " + actSize);
 				//put in sequence num
 				buffData.putInt(8, sn);
+				
 				//put crc
 				crc.reset();
-				crc.update(byteArray, 8, byteArray.length-8);
+				crc.update(byteArray, 8, actSize-4);
 				long chksum = crc.getValue();
 				buffData.rewind();
 				buffData.putLong(chksum);
