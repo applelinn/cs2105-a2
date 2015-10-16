@@ -32,7 +32,7 @@ public class FileSender{
 			ByteBuffer buffData = ByteBuffer.wrap(byteArray);
 			// read 1000 bytes from file
 			//if the file has ended then stop
-			int offset = 8 + 4 ;
+			int offset = 8 + 4 + 4 ;
 			int len = byteArraySize - offset;
 			int sn = 0;
 			String newName = args[3];
@@ -92,6 +92,7 @@ public class FileSender{
 					System.out.println("ack corrupt");
 					sk.send(pkt);
 					System.out.println("pkt " + sn + "sent");
+					continue;
 				}
 				b.rewind();
 				if (b.getInt() != sn)
@@ -99,29 +100,33 @@ public class FileSender{
 					System.out.println("Pkt wrong sn");
 					sk.send(pkt);
 					System.out.println("pkt " + sn + "sent");
+					continue;
 				}
 				else
 					isWrong = false;
 			}
 			++sn;
-			buffData.clear();
+			
+			//put data in packets
 			int actSize = dis.read(byteArray, offset, len);
 
-			//put data in packets
+			
 			while( actSize != -1)
 			{
+				buffData.rewind();
+				buffData.putLong(0);
 				System.out.println("act size " + actSize);
 				//put in sequence num
 				buffData.putInt(8, sn);
-				
+				buffData.putInt(12, actSize);
 				//put crc
 				crc.reset();
-				crc.update(byteArray, 8, actSize-4);
+				crc.update(byteArray, 8, byteArray.length - 8);
 				long chksum = crc.getValue();
 				buffData.rewind();
 				buffData.putLong(chksum);
 				//packet time~
-				pkt = new DatagramPacket(byteArray, actSize + 12 , addr);
+				pkt = new DatagramPacket(byteArray, byteArray.length , addr);
 				//	System.out.println("Sent CRC:" + chksum + " Contents:" + bytesToHex(byteArray));
 				//send off via socket
 				sk.send(pkt);
