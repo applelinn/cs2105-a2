@@ -87,7 +87,7 @@ public class FileReceiver {
 					DatagramPacket ack = Ack(snCorrect-1, pkt.getSocketAddress());
 					sk.send(ack);
 					System.out.println("sent prev ack because wrong sn");
-					System.out.println("ack sent " + (snCorrect -1));
+					System.out.println("ack sent " + snCorrect + "minus one");
 					continue;
 				}
 				System.out.println("sn correct: " + snCorrect);
