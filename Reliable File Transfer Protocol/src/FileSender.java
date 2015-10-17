@@ -107,12 +107,39 @@ public class FileSender{
 			}
 			++sn;
 			
+			//lets  leave pkt 0 out of this shit
 			//put data in packets
-			int actSize = dis.read(byteArray, offset, len);
-
 			
+			
+			int maxLen = 5; // the amount of pkts to be kept in buffer to send out
+			// put in maxLen pkts into a vector
+			Vector<APkt> toSend;
+			
+			for( int i = 0; i <= maxLen; ++i)
+			{
+				//need to redeclare everything in the loop so that the buffers dont override...
+				//put a Apkt in...
+			}
+			
+			int actSize = dis.read(byteArray, offset, len);
 			while( actSize != -1)
 			{
+				//send and wait for ack
+				for(int i = 0; i <= maxLen ; ++i)
+				{
+					//send pkt
+					//open thread to wait for pkt
+				}
+				
+				//take sn number of ack from pkt n if corrupt status or time out status (lets call it bool ifAckReceived status
+				// look for sn in the vector
+				//delete the Apkt of the sn that acks have been received
+				//put in more pkts till vector length == maxLen
+				//if actSize becomes -1 break out
+				
+				// after loop send the remaining vector.length pkts till their acks are received (via threads that live for 200ms)
+				
+				
 				buffData.rewind();
 				buffData.putLong(0);
 				System.out.println("act size " + actSize);

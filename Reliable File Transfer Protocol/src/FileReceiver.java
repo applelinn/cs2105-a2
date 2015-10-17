@@ -35,7 +35,7 @@ public class FileReceiver {
 		while (!isPktUncorrupt(pkt, b) || sn != snCorrect)
 		{
 			//send wrong ack ack-1
-			DatagramPacket nack = Ack(1, pkt.getSocketAddress());
+			DatagramPacket nack = Ack(-1, pkt.getSocketAddress());
 			sk.send(nack);
 			System.out.println("sent nak");
 			b.clear();
