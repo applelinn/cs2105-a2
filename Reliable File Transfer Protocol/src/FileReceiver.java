@@ -65,16 +65,25 @@ public class FileReceiver {
 		FileOutputStream fos = new FileOutputStream(f);
 		DataOutputStream dos = new DataOutputStream (fos);	
 		f.createNewFile();
-
+		
+		// leave pkt 0 alone!!
+		
+			int snFront = 1;
+			int windowSize = 5;
+			Vector<APkt> buffVector = new Vector<APkt>(windowSize);
+			
 		while(true)
 		{
+			// get pkts as usual -- actually should open threads to receive multiple pkts at a time... do it if got energy
+			
 			pkt.setLength(data.length);
 			b.clear();
 			sk.receive(pkt);
 			System.out.println("received new packet");
 			// Debug output
 			//	System.out.println("Received CRC:" + crc.getValue() + " Data:" + bytesToHex(data, pkt.getLength()));
-
+			
+			
 			if (isPktUncorrupt(pkt, b))
 			{
 				b.rewind();
@@ -82,35 +91,58 @@ public class FileReceiver {
 				sn = b.getInt();
 				System.out.println("sn of the ack received " + sn);
 				int actSize = b.getInt();
-				if(sn != snCorrect)
+				if (sn < snFront && sn > snFront + windowSize) //	if(sn != snCorrect)
 				{
-					DatagramPacket ack = Ack(snCorrect-1, pkt.getSocketAddress());
+					DatagramPacket ack = Ack(snFront-1, pkt.getSocketAddress());
 					sk.send(ack);
 					System.out.println("sent prev ack because wrong sn");
-					System.out.println("ack sent " + snCorrect + "minus one");
+					System.out.println("ack sent " + snFront + "minus one");
 					continue;
 				}
-				System.out.println("sn correct: " + snCorrect);
+				
+				System.out.println("sn front: " + snFront);
 				System.out.println("Pkt " + sn);
-				int tempDataLen = pkt.getLength()-12;
-				System.out.println("pkt len " + tempDataLen);
-				System.out.println("data size actsize: " + actSize);
-				byte[] tempData = new byte[tempDataLen];
-				b.get(tempData, 0, actSize);
-				//save it to a file
-				dos.write(tempData,0,actSize);
+				
+				//now the packet is confirm correct can start to process it
+				//here put into buffer n then continue reading first
+				//when buffer ready pass to file as much as possible if sn == snFront then while (sn != 0)	then change snfront
+				
+				//creating APkt
+				APkt pktA = new APkt();
+				b.rewind();
+				b.getLong(); //dun need crc check anymore
+				pktA.sn = b.getInt();
+				pktA.size = b.getInt();
+				b.get(pktA.data);
+				
+				//how to put into the correct location? -- use snfront to get the correct index
+				int index = pktA.sn - snFront;
+				buffVector.set(index, pktA);
+				APkt pktB;
+				if(pktA.sn == snFront)
+				{
+					pktB = pktA;
+					while (pktB.sn != 0)
+					{
+						dos.write(pktB.data,0,pktB.size);
+						buffVector.remove(0);
+						buffVector.add(null);
+					}
+					snFront = pktB.sn;
+				}
 
 				//update ack
-				DatagramPacket ack = Ack(sn, pkt.getSocketAddress());
+				DatagramPacket ack = Ack(pktA.sn, pkt.getSocketAddress());
 				sk.send(ack);
-				System.out.println("ack sent " + sn);
-				++snCorrect;
+				System.out.println("ack sent " + sn + "aka " + pktA.sn);
 			}
 			else
 			{
-				DatagramPacket ack = Ack(snCorrect-1, pkt.getSocketAddress());
+				
+		//need to find way to send acks--send ack of pckt received
+				DatagramPacket ack = Ack(snFront-1, pkt.getSocketAddress());
 				sk.send(ack);
-				System.out.println("sent prev ack. ack " + (snCorrect-1));
+				System.out.println("sent prev ack. ack " + (snFront-1));
 			}
 
 		}
